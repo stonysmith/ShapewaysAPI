@@ -2,7 +2,7 @@
 // This reads the list of models from the owner's Shapeways shop and presents the list as an html table.
 // author: stonysmith 2017-04-21
 
-/* Enable debug output
+/* Enable debug output */
 error_reporting(E_ALL); 
 ini_set('display_errors', '1');
 ini_set("log_errors", 1);
@@ -11,8 +11,8 @@ ini_set("error_log", "./php-error.log");
 /**/
 
 function getAccessToken(){
-// For security, the tokens are saved in an external file named sw_api_tokens.php
-// that file should be formatted like this, or, replace the "require" below with these two lines.
+// For security, the tokens are saved in an external file.
+// that file should be formatted like this:
 /************************************************************************
 <?php
 $client_id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -69,13 +69,18 @@ curl_close($process);
 return $response;
 }
 
+$GLOBALS['seq']=1;
+
 function formatModels($models){
 foreach ($models as $key => $model) {
   //echo "<br>$key = ".var_dump($model);
-  echo '<tr><td><a href="https://www.shapeways.com/model/upload-and-buy/'.$model['modelId'].'">'.$model['modelId'].'</a><td>'.$model['title'].'</tr>';
+  echo '<tr><td>'.$GLOBALS['seq'];
+  echo '<td><a href="https://www.shapeways.com/model/upload-and-buy/'.$model['modelId'].'">'.$model['modelId'].'</a>';
+  echo '<td>'.$model['title'].'</tr>';
+  $GLOBALS['seq']=$GLOBALS['seq']+1;
   }}
 
-echo '<html><body><table border=1 style="border-collapse:collapse"><tr><td>ModelId<td>Title</tr>';
+echo '<html><body><table border=1 style="border-collapse:collapse"><tr><td>Seq<td>ModelId<td>Title</tr>';
 
 $access_token=getAccessToken();
 $models='any';
