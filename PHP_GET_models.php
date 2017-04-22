@@ -2,15 +2,24 @@
 // This reads the list of models from the owner's Shapeways shop and presents the list as an html table.
 // author: stonysmith 2017-04-21
 
-//error_reporting(E_ALL); 
-//ini_set('display_errors', '1');
-//ini_set("log_errors", 1);
-//echo ini_get("error_log");
-//ini_set("error_log", "./php-error.log");
+/* Enable debug output
+error_reporting(E_ALL); 
+ini_set('display_errors', '1');
+ini_set("log_errors", 1);
+echo ini_get("error_log");
+ini_set("error_log", "./php-error.log");
+/**/
 
 function getAccessToken(){
+// For security, the tokens are saved in an external file named sw_api_tokens.php
+// that file should be formatted like this, or, replace the "require" below with these two lines.
+/************************************************************************
+<?php
 $client_id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 $client_secret = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+?>
+************************************************************************/
+require './sw_api_tokens.php';
 $user=$client_id.":".$client_secret;
 $url = 'https://api.shapeways.com/oauth2/token';
 $params = array(
