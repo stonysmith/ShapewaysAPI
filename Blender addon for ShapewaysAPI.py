@@ -119,6 +119,10 @@ class Shapeways(object):
         }
         r = requests.post(url="https://{host}/model/{version}".format(host=API_SERVER, version=API_VERSION),data=json.dumps(payload), headers=self.header)
         return r.json()
+
+    def get_model_info(self, model_id):
+        r = requests.get(url="https://{host}/models/{model_id}/info/{version}".format(host=API_SERVER, version=API_VERSION, model_id=model_id), headers=self.header)
+        return r.json()
 ##################################
 
 class ShapewaysSettings(PropertyGroup):
@@ -136,8 +140,6 @@ class ShapewaysSettings(PropertyGroup):
         message = bpy.props.StringProperty(name="message",description = "Message",default = "")
         modelid = bpy.props.StringProperty(name="modelid",description = "ModelId",default = "")
         spin = bpy.props.StringProperty(name="spin",description = "Spin",default = "")
-        counter = bpy.props.IntProperty(name="counter",description = "Counter",default = 0)
-
 
 class ShapewaysToolsPanel(bpy.types.Panel):
     bl_idname = "shapeways.tools"
@@ -158,14 +160,55 @@ class ShapewaysToolsPanel(bpy.types.Panel):
         # display the properties
         layout.prop(mytool, "scale", text="Scale")
         layout.prop(mytool, "filename", text="Filename")
-        layout.prop(mytool, "message", text="Message")
         layout.operator("shapeways.upload", text='Upload')
+        layout.prop(mytool, "message", text="Message")
         layout.prop(mytool, "modelid", text="modelid")
         layout.prop(mytool, "spin", text="spin")
-        layout.prop(mytool, "counter", text="counter")
-        #ShapewaysSettings.message="Loaded"
-
+        layout.operator("shapeways.modelinfo", text='Check Status')
+        layout.operator("browser.open", text='Open at Shapeways')
  
+class OpenInBrowser(bpy.types.Operator):
+    bl_idname = "browser.open"
+    bl_label = "Open at Shapeways"
+
+    def invoke(self, context, event) :
+        import webbrowser
+        my_data=bpy.data.scenes["Scene"].my_tool
+        modelId=my_data.modelid
+        URL='https://www.shapeways.com/model/upload-and-buy/'+str(modelId)
+        webbrowser.open(URL,new=0);
+        return {'FINISHED'}
+
+class Shapeways_ModelInfo(bpy.types.Operator):
+    bl_idname = "shapeways.modelinfo"
+    bl_label = "Shapeways ModelInfo"
+
+    def invoke(self, context, event) :
+        addon_prefs = context.user_preferences.addons[__name__].preferences
+        data = [('grant_type', 'client_credentials'),]
+        client=Shapeways(addon_prefs.clientId, addon_prefs.clientSecret)
+        access_token=client.get_access_token()
+        addon_prefs.AccessToken = access_token
+        #access_token=addon_prefs.AccessToken
+        my_data=bpy.data.scenes["Scene"].my_tool
+        modelId=my_data.modelid
+
+        bpy.context.window.cursor_set("WAIT")
+        resp=client.get_model_info(modelId)
+        bpy.context.window.cursor_set("DEFAULT")
+
+        self.report({'INFO'}, "Response="+str(resp))
+        result=resp["result"]
+        spin=resp['spin']
+        self.report({'INFO'}, "Spin="+str(spin))
+        #modelId=str(resp['modelId'])
+        #self.report({'INFO'}, "ModelId="+str(modelId))
+        #bpy.ops.shapewayserror.message('INVOKE_DEFAULT', result = result, json = str(resp), modelid = modelId, spin = spin)
+        my_data.message = result
+        my_data.spin=spin
+        #bpy.ops.shapeways.tools.message=str(resp)
+        return {'FINISHED'}
+
 class Shapeways_UploadAction(bpy.types.Operator):
     bl_idname = "shapeways.upload"
     bl_label = "Shapeways Upload"
@@ -258,6 +301,8 @@ def register():
     bpy.utils.register_class(ShapewaysAPIAddonPreferences)
     bpy.utils.register_class(ShapewaysAPI_GetAccessToken)
     bpy.utils.register_class(ShapewaysToolsPanel)
+    bpy.utils.register_class(OpenInBrowser)
+    bpy.utils.register_class(Shapeways_ModelInfo)
     bpy.utils.register_class(Shapeways_UploadAction)
     bpy.utils.register_class(ShapewaysMessagePanel)
     bpy.utils.register_class(ShapewaysOkOperator)
@@ -266,6 +311,8 @@ def unregister():
     bpy.utils.unregister_class(ShapewaysOkOperator)
     bpy.utils.unregister_class(ShapewaysMessagePanel)
     bpy.utils.unregister_class(Shapeways_UploadAction)
+    bpy.utils.unregister_class(Shapeways_ModelInfo)
+    bpy.utils.unregister_class(OpenInBrowser)
     bpy.utils.unregister_class(ShapewaysToolsPanel)
     bpy.utils.unregister_class(ShapewaysAPI_GetAccessToken)
     bpy.utils.unregister_class(ShapewaysAPIAddonPreferences)
