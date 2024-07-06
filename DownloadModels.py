@@ -1,8 +1,11 @@
 import json
 import os
-import AuthKeys
 import base64
 from Shapeways_nossl import Shapeways
+# Visit https://developers.shapeways.com/manage-apps to get your tokens
+# Enter your ClientKey and ClientSecret here:
+client_id='xxxxxxxxxxxxxxxxx'
+client_secret='xxxxxxxxxxxxxxxxx'
 
 client = Shapeways(AuthKeys.client_id, AuthKeys.client_secret)
 at = client.get_access_token()
